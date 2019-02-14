@@ -423,6 +423,38 @@ Uses prefix (as PREFIX) to choose where to display it:
         relative-depth))))
 
 (defun plantuml-indent-line ()
+  "Indent the current line according the previous line's level."
+  (interactive)
+  (defvar plantuml-indent-regexp-start)
+  (defvar plantuml-indent-regexp-end)
+  (let ((original-position-eol (- (line-end-position) (point)))
+        (relative-depth 0)
+        (indent-to 0))
+    (save-excursion
+      (beginning-of-line)
+      (if (bobp)
+          (setq indent-to 0)
+        (if (looking-at plantuml-indent-regexp-end)
+            (setq relative-depth (1- relative-depth)))
+        (forward-line -1)
+        (if (looking-at plantuml-indent-regexp-start)
+            (setq relative-depth (1+ relative-depth)))
+        (beginning-of-line-text)
+        (setq indent-to (+ (current-column) (* tab-width relative-depth)))
+        (if (<= indent-to 0)
+            (setq indent-to 0))
+        (forward-line 1)
+        (beginning-of-line)
+        )
+      (indent-line-to indent-to)
+      )
+
+    ;; restore position in text of line
+    (goto-char (- (line-end-position) original-position-eol)))
+  )
+
+
+(defun plantuml-indent-line-1 ()
   "Indent the current line to its desired indentation level.
 Restore point to same position in text of the line as before indentation."
   (interactive)
